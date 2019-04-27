@@ -1,6 +1,7 @@
 const express = require("express");
 const gravatar = require("gravatar");
 const bcrypt = require("bcryptjs");
+const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 
@@ -115,5 +116,26 @@ router.post("/login", (req, res) => {
       .catch(err => console.log("Error on comparing password", err));
   });
 });
+
+/**
+ * @route GET api/users/current
+ * @description Return current user
+ * @access Private
+ */
+
+router.get(
+  "/current",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    res.json({
+      msg: "success on passport implementation",
+      user: {
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email
+      }
+    });
+  }
+);
 
 module.exports = router;
