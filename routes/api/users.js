@@ -13,6 +13,8 @@ const User = require("../../models/User");
 
 //load register validator
 const registerValidator = require("../../validation/RegisterValidator");
+//load login validator
+const loginValidator = require("../../validation/LoginValidator");
 
 /**
  * @route GET api/users/test
@@ -80,13 +82,18 @@ router.post("/register", (req, res) => {
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
 
+  const { errors, isValid } = loginValidator(req.body);
+  //check validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   //find user by email
   User.findOne({ email }).then(user => {
     //check for user
     if (!user) {
-      return res.status(404).json({
-        email: "User not found"
-      });
+      errors.email = "User not found";
+      return res.status(404).json(errors);
     }
     //check password
     bcrypt
@@ -115,9 +122,8 @@ router.post("/login", (req, res) => {
           );
           //   res.json({ msg: "success" });
         } else {
-          res.status(400).json({
-            password: "Password Incorrect"
-          });
+          errors.password = "Password Incorrect";
+          res.status(400).json(errors);
         }
       })
       .catch(err => console.log("Error on comparing password", err));
