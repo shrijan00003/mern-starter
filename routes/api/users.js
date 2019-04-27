@@ -11,6 +11,9 @@ const router = express.Router();
 //load user model
 const User = require("../../models/User");
 
+//load register validator
+const registerValidator = require("../../validation/RegisterValidator");
+
 /**
  * @route GET api/users/test
  * @description Test users route
@@ -29,13 +32,17 @@ router.get("/test", (req, res) => {
  */
 
 router.post("/register", (req, res) => {
+  const { errors, isValid } = registerValidator(req.body);
+  //check validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
   User.findOne({
     email: req.body.email
   }).then(user => {
     if (user) {
-      return res.status(400).json({
-        email: "Email Already Exist"
-      });
+      errors.email = "Email Already Exist";
+      return res.status(400).json(errors);
     } else {
       const avatar = gravatar.url(req.body.email, {
         s: "200", //size
